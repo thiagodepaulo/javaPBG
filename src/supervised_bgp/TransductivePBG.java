@@ -14,6 +14,9 @@ public class TransductivePBG extends TransductiveClassifier {
 	private int numTest; // Number of unlabeled documents
 	private int numClasses; // Number of classes
 	private int numTerms; // Number of terms
+	
+	private double alpha;
+	private double beta;
 
 	private PBG pbg;	
 
@@ -25,8 +28,6 @@ public class TransductivePBG extends TransductiveClassifier {
 
 		BipartiteGraph g = createBipartiteGraph(dataTrain, dataTest);
 		
-		double alpha = 0;
-		double beta = 0;
 		int op_inicializacao = 0;
 		
 		int local_max_itr = 100;
@@ -45,7 +46,7 @@ public class TransductivePBG extends TransductiveClassifier {
 		// atribui classe para a matrix A para exemplos de treino
 		HashMap<Integer, Integer> labeled = new HashMap<>();
 		for(int inst = this.numTest ; inst < this.numTest + this.numTrain; inst++) {
-			int k = (int)dataTrain.instance(inst).classValue();
+			int k = (int)dataTrain.instance(this.numTest - inst).classValue();
 			Arrays.fill(A.mat[inst], 0);
 			A.mat[inst][k] = 1;
 			labeled.put(inst, k); 
@@ -61,21 +62,16 @@ public class TransductivePBG extends TransductiveClassifier {
 	
 	public void initialize1(Matrix B, Instances dataTrain) {		
 		for (int term = 0; term < numTerms; term++) {
-			boolean filled = false;	// indicate if term vector was already initialized with zero
+			Arrays.fill(B.mat[term], 0);
 			for (int inst=0; inst < numTrain; inst++) {						
 				double v = dataTrain.instance(inst).value(term);
-				if (v > 0) {
-					if (!filled) {
-						Arrays.fill(B.mat[term], 0);
-						filled = true;
-					}
+				if (v > 0) {					
 					int k = (int)dataTrain.instance(inst).classValue();						
 					B.mat[term][k] += v;
 				}
 			}
-			// normalize term vector
-			B.mat[term] = Matrix.normalize(B.mat[term]);
 		}
+		B.normalizebycolumn();
 	}
 
 	public BipartiteGraph createBipartiteGraph(Instances dataTrain,
