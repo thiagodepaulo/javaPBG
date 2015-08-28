@@ -65,16 +65,20 @@ public class TransductivePBG extends TransductiveClassifier {
 	public Matrix initialize1(int numTerms, int numClasses, Instances dataTrain) {
 		Matrix B = new Matrix(new double[numTerms][numClasses]);
 		for (int term = 0; term < numTerms; term++) {
-			// Arrays.fill(B.mat[term], 0);
+			// Arrays.fill(B.mat[term], this.beta);
+			double sumFreqTerm = 0;
 			for (int inst = 0; inst < numTrain; inst++) {
 				double v = dataTrain.instance(inst).value(term);
 				if (v > 0) {
+					sumFreqTerm += v;
 					int k = (int) dataTrain.instance(inst).classValue();
 					B.mat[term][k] += v;
 				}
 			}
+			for (int k = 0; k < this.numClasses; k++)
+				B.mat[term][k] /= sumFreqTerm;
 		}
-		B.normalizebycolumn();
+		//B.normalizebycolumn();
 		return B;
 	}
 
